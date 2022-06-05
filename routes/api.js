@@ -3,45 +3,38 @@
 const expect = require('chai').expect;
 const ConvertHandler = require('../controllers/convertHandler.js');
 
-const bodyParser  = require('body-parser');
+module.exports = app => {
 
-module.exports = function (app) {
-  
   let convertHandler = new ConvertHandler();
 
-  //Get request for the form input
-  app.route('/api/convert').get((req, res)=>{
-    let {input} = req.query;
-
-    //Sets variables using convertHandler
-    let initNum = convertHandler.getNum(input);
-    let initUnit = convertHandler.getUnit(input);
-    let returnUnit = convertHandler.getReturnUnit(initUnit);
-
-    //Checks if number or unit is invalid
-    if(initNum === 'invalid number' && returnUnit === 'invalid unit'){
-      return res.json('invalid number and unit');
-    }
-    else if(initNum === 'invalid number'){
-      return res.json('invalid number');
-    }
-    else if(returnUnit === 'invalid unit'){
-      return res.json('invalid unit');
-    }
-
-    //Convert the number 
-    let returnNum = convertHandler.convert(initNum, initUnit);
-    
-    //Sets the string using variables
-    let result = convertHandler.getString(initNum, initUnit, returnNum, returnUnit);
-    
-    return res.json({
-      initNum: initNum,
-      initUnit: initUnit,
-      returnNum: returnNum,
-      returnUnit: returnUnit,
-      string: result
-    })
-  })
+  app.route('/api/convert')
+    .get(function (req, res){
+      // console.log(req.query)
+      let input = req.query.input;
+      let initNum = convertHandler.getNum(input);
+      let initUnit = convertHandler.getUnit(input);
+      
+      if (!initNum && !initUnit) {
+        res.json('invalid number and unit')
+      }
+      else if (!initNum) {
+        res.json('invalid number')
+      }
+      else if (!initUnit) {
+        res.json('invalid unit')
+      }
+      
+      let returnNum = convertHandler.convert(initNum, initUnit);
+      let returnUnit = convertHandler.getReturnUnit(initUnit);
+      let toString = convertHandler.getString(initNum, initUnit, returnNum, returnUnit);
+      
+      res.json({
+        initNum,
+        initUnit,
+        returnNum,
+        returnUnit,
+        string: toString
+      })
+    });
   
-};
+}
